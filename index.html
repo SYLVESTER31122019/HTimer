@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HTimer</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            color: #0b2550;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin: 0 0 30px 0;
+            color: #102b5c;
+        }
+
+        #timer {
+            font-family: monospace;
+            font-size: clamp(45px, 8vw, 90px);
+            font-weight: bold;
+            white-space: nowrap;
+            background: white;
+            padding: 30px 40px;
+            margin-bottom: 35px;
+            border: 1px solid #dce4ee;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button {
+            min-width: 145px;
+            padding: 17px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+            transition: transform 0.1s;
+        }
+
+            button:nth-child(1) {
+                background: #16c64f;
+            }
+
+            button:nth-child(2) {
+                background: #e5232d;
+            }
+
+            button:nth-child(3) {
+                background: #8799aa;
+            }
+
+            button:hover {
+                filter: brightness(1.08);
+            }
+
+            button:active {
+                transform: scale(0.96);
+            }
+        #lapsContainer {
+            width: min(1000px, 90%);
+            margin-top: 35px;
+            display: none;
+        }
+
+            #lapsContainer h2 {
+                text-align: center;
+                font-size: 18px;
+                color: #102b5c;
+                margin-bottom: 15px;
+            }
+
+        #laps {
+            display: grid;
+            grid-template-rows: repeat(10, auto);
+            grid-auto-flow: column;
+            grid-auto-columns: 1fr;
+            gap: 7px 25px;
+            background: white;
+            padding: 20px;
+            border: 1px solid #dce4ee;
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        .lap {
+            font-family: monospace;
+            font-size: 16px;
+            color: #0b2550;
+            white-space: nowrap;
+        }
+        @media (max-width: 600px) {
+
+            h1 {
+                font-size: 32px;
+            }
+
+            #timer {
+                padding: 20px;
+            }
+
+            .buttons {
+                gap: 7px;
+            }
+
+            button {
+                min-width: 95px;
+                padding: 14px 10px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>HTimer</h1>
+
+    <div id="timer">00:00:00.0</div>
+
+    <div class="buttons">
+        <button onclick="startTimer()">START</button>
+        <button onclick="stopTimer()">STOP</button>
+        <button onclick="resetTimer()">RESET</button>
+    </div>
+   
+    <div id="lapsContainer">
+        <h2>RUNDENZEITEN</h2>
+        <div id="laps"></div>
+    </div>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+
+        function startTimer() {
+
+        if (timerInterval !== null) {
+        addLap();
+        return;
+        }
+
+        startTime = Date.now() - elapsedTime;
+
+        timerInterval = setInterval(function () {
+
+        elapsedTime = Date.now() - startTime;
+        displayTime();
+
+        }, 100);
+        }
+        let lapCount = 0;
+
+        function addLap() {
+
+        if (lapCount >= 50) {
+        return;
+        }
+
+        lapCount++;
+
+        let totalSeconds = Math.floor(elapsedTime / 1000);
+
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        let tenths = Math.floor((elapsedTime % 1000) / 100);
+
+        hours = String(hours).padStart(2, "0");
+        minutes = String(minutes).padStart(2, "0");
+        seconds = String(seconds).padStart(2, "0");
+
+        const lapTime =
+        hours + ":" +
+        minutes + ":" +
+        seconds + "." +
+        tenths;
+
+        const lap = document.createElement("div");
+        lap.className = "lap";
+
+        lap.textContent =
+        String(lapCount).padStart(2, "0") +
+        "   " +
+        lapTime;
+
+        document.getElementById("laps").appendChild(lap);
+
+        document.getElementById("lapsContainer").style.display = "block";
+        }
+    
+        function stopTimer() {
+
+        clearInterval(timerInterval);
+        timerInterval = null;
+        }
+
+        function resetTimer() {
+
+        stopTimer();
+
+        elapsedTime = 0;
+        lapCount = 0;
+
+        document.getElementById("laps").innerHTML = "";
+        document.getElementById("lapsContainer").style.display = "none";
+
+        displayTime();
+        }
+
+        function displayTime() {
+
+        let totalSeconds = Math.floor(elapsedTime / 1000);
+
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+        let tenths = Math.floor((elapsedTime % 1000) / 100);
+
+        hours = String(hours).padStart(2, "0");
+        minutes = String(minutes).padStart(2, "0");
+        seconds = String(seconds).padStart(2, "0");
+
+        document.getElementById("timer").textContent =
+        hours + ":" +
+        minutes + ":" +
+        seconds + "." +
+        tenths;
+        }
+    </script>
+
+</body>
+
+</html>
